@@ -12,13 +12,15 @@ import { ProyectoComponent } from './componentes/proyecto/proyecto.component';
 
 import { PrincipalComponent } from './componentes/principal/principal.component';
 import { NosotrosComponent } from './componentes/nosotros/nosotros.component';
+import { H5IndexComponent } from './componentes/h5-index/h5-index.component';
 @NgModule({
   declarations: [
     AppComponent,
     MenuComponent,
     ProyectoComponent,
     PrincipalComponent,
-    NosotrosComponent
+    NosotrosComponent,
+    H5IndexComponent
   ],
   imports: [
     BrowserModule,
