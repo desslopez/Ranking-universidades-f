@@ -635,8 +635,10 @@ def display_page(pathname):
         return page_pub2018_layout
     elif pathname == '/pub2016':
         return page_pub2016_layout
+
     elif pathname == '/cit2018':
         return page_cit2018_layout
+        
     elif pathname == '/cit2017':
         return page_cit2017_layout
     elif pathname == '/cit2016':
