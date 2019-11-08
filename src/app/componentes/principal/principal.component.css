@@ -1,0 +1,18 @@
+.sidebar{
+ max-height: calc(100vh - 5rem);
+ overflow-y: auto;
+}
+.sidebar::-webkit-scrollbar {
+  width: 5px;
+}
+.sidebar::-webkit-scrollbar{
+  background: #f1f1f1;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background: #afcfee;
+}
+
+/* Handle on hover */
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
