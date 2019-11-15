@@ -29,23 +29,25 @@ def trace1pattern(path):
                     color='rgb(87, 225, 215)'
                 )
             )
-    min_value[path+'\n']=float(line[2])
-    max_value[path+'\n']=max(df[line[0]])
+    min_value[path]=float(line[2])
+    max_value[path]=max(df[line[0]])
+    x_name_g1[path]=line[0]
     traces = [trace1, trace2]
     return traces
 
 # Read data to visualize the patterns of 1 dimension
 directory="/Users/sandy/Downloads/results-2/1/"
 f = open(directory+"patterns.txt", "r")
-patterns1 = f.readlines()
+patterns1 = f.read().splitlines()
 
 graphs = dict()
 min_value = dict()
 max_value = dict()
+x_name_g1 = dict()
 
 for line in patterns1:
-    line=line.rstrip()
-    graphs[line+'\n']=trace1pattern(line)
+    line=line.replace('\n', '')
+    graphs[line]=trace1pattern(line)
 
 f.close()
 
@@ -115,23 +117,114 @@ def trace2pattern(path):
                             color='rgb(79, 167, 235)'),
                             hovertext="University: " + df2False['University']
                         )
-
+                
+    x_name_g2[path]=line[0]
+    y_name_g2[path]=line[4]
     traces = [trace1, trace2, trace3, trace4]
     return traces
 
 # Read data to visualize the patterns of 1 dimension
 directory="/Users/sandy/Downloads/results-2/2/"
 f = open(directory+"pattern.txt", "r")
-patterns2 = f.readlines()
+patterns2 = f.read().splitlines()
 
 graphs2 = dict()
-
+x_name_g2 = dict()
+y_name_g2 = dict()
 
 for line in patterns2:
-    line=line.rstrip()
-    graphs2[line+'\n']=trace2pattern(line)
+    graphs2[line]=trace2pattern(line)
 f.close()
 
+# 3D Patterns
+
+def trace3pattern(path):
+    dfTrue = pd.read_csv(directory+"True "+path+".csv", encoding = "ISO-8859-1")
+    dfFalse = pd.read_csv(directory+"False "+path+".csv", encoding = "ISO-8859-1")
+
+    df1True = dfTrue[dfTrue['class']==1]
+    df2True = dfTrue[dfTrue['class']==2]
+
+    df1False =dfFalse[dfFalse['class']==1]
+    df2False =dfFalse[dfFalse['class']==2]
+    
+    line = path.split(" ")
+
+    trace1 = go.Scatter3d(x=df1True[line[0]],
+                y=df1True[line[4]],
+                z=df1True[line[8]],
+                mode='markers',
+                name="Top 100: cumplen",
+                marker=dict(size=16,
+                            cmax=99,
+                            cmin=0,
+                            opacity=0.7,
+                            color='rgb(87, 225, 215)'),
+                            hovertext="University: " + df1True['University']
+                        )
+
+
+    trace2 = go.Scatter3d(x=df1False[line[0]],
+                y=df1False[line[4]],
+                z=df1False[line[8]],
+                mode='markers',
+                name='Top 100: NO cumplen',
+                marker=dict(size=16,
+                            cmax=99,
+                            cmin=0,
+                            opacity=0.4,
+                            # symbol="triangle-sw-dot",
+                            color='rgb(87, 225, 215)'),
+                            hovertext="University: " + df1False['University']
+                        )
+
+    trace3 = go.Scatter3d(x=df2True[line[0]],
+                y=df2True[line[4]],
+                z=df2True[line[8]],
+                mode='markers',
+                name='101-200: cumplen',
+                marker=dict(size=16,
+                            cmax=99,
+                            cmin=0,
+                            opacity=0.7,
+                            symbol="square",
+                            color='rgb(79, 167, 235)'),
+                            hovertext="University: " + df2True['University']
+                        )
+
+    trace4 = go.Scatter3d(x=df2False[line[0]],
+                y=df2False[line[4]],
+                z=df2False[line[8]],
+                mode='markers',
+                name='101-200: NO cumplen',
+                marker=dict(size=16,
+                            cmax=99,
+                            cmin=0,
+                            opacity=0.4,
+                            symbol="square",
+                            color='rgb(79, 167, 235)'),
+                            hovertext="University: " + df2False['University']
+                        )
+
+    x_name_g3[path]=line[0]
+    y_name_g3[path]=line[4]
+    z_name_g3[path]=line[8]
+    traces = [trace1, trace2, trace3, trace4]
+    return traces
+
+# Read data to visualize the patterns of 3 dimension
+directory="/Users/sandy/Downloads/results-2/3/"
+f = open(directory+"pattern.txt", "r")
+patterns3 = f.read().splitlines()
+
+graphs3 = dict()
+x_name_g3 = dict()
+y_name_g3 = dict()
+z_name_g3 = dict()
+
+for line in patterns3:
+    graphs3[line]=trace3pattern(line)
+f.close()
 
 
 
@@ -147,7 +240,7 @@ app = dash.Dash(__name__)
 app.config.suppress_callback_exceptions = True
 
 app.layout = html.Div([
-    dcc.Location(id='url', refresh=True),
+    dcc.Location(id='url', refresh=False),
     html.Div(id='page-content')
 ])
 
@@ -180,6 +273,22 @@ page_2pattern_layout = html.Div([
         id='my-graph2')
 ])
 
+
+
+# Create the main page for patterns of 3 dimmension2
+page_3pattern_layout = html.Div([
+    html.Div(id='page-3pattern'),
+    dcc.Dropdown(
+        id='3pattern-dropdown',
+        options=[
+            {'label': line, 'value': line} for line in patterns3],
+            value=patterns3[0],
+    ),
+     dcc.Graph(
+        style={'height': 800},
+        id='my-graph3')
+])
+
 @app.callback(dash.dependencies.Output('page-content', 'children'),
               [dash.dependencies.Input('url', 'pathname')])
 
@@ -188,6 +297,8 @@ def display_page(pathname):
         return page_1pattern_layout
     elif pathname == '/2pattern':
         return page_2pattern_layout
+    elif pathname == '/3pattern':
+        return page_3pattern_layout
 
 
 @app.callback(dash.dependencies.Output('my-graph1', 'figure'), 
@@ -199,6 +310,7 @@ def update_graph(selected_graph):
         
         'layout':go.Layout(
             title=selected_graph,
+            yaxis ={'title':x_name_g1[selected_graph]},
             shapes=[dict(
                 type='rect',
                 x0=-1,
@@ -222,9 +334,26 @@ def update_graph(selected_graph2):
         'data': graphs2[selected_graph2],
         
         'layout':go.Layout(
-            title=selected_graph2,)
+            title=selected_graph2,
+            xaxis ={'title':x_name_g2[selected_graph2]},
+            yaxis ={'title':y_name_g2[selected_graph2]})
         }
 
+@app.callback(dash.dependencies.Output('my-graph3', 'figure'), 
+ [dash.dependencies.Input('3pattern-dropdown', 'value')])
+
+def update_graph(selected_graph3):
+    return {
+        'data': graphs3[selected_graph3],
+        
+        'layout':go.Layout(
+            title=selected_graph3,
+            scene = dict(xaxis=dict(title=x_name_g3[selected_graph3]),
+                               yaxis=dict(title=y_name_g3[selected_graph3]),
+                               zaxis=dict(title=z_name_g3[selected_graph3]),
+            )
+        )
+        }
 
 
 if __name__ == '__main__':
