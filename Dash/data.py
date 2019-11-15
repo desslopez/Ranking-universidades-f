@@ -2,26 +2,140 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import pandas as pd
-import numpy as np
+import plotly.graph_objs as go
+from dash.dependencies import Input, Output
 
-# Read data from generated csv
-data = pd.read_csv("/Users/sandy/Downloads/universities3.csv", encoding = "ISO-8859-1")
+def trace1pattern(path):
+    df1 = pd.read_csv(directory+"True "+path+".csv", encoding = "ISO-8859-1")
+    df2 = pd.read_csv(directory+"False "+path+".csv", encoding = "ISO-8859-1")
+    df = [df1, df2]
+    df = pd.concat(df)
+    dff1 = df[df['class']==1]
+    dff2 = df[df['class']==2]
+    
+    line = path.split(" ")
 
-# Retrieve University names
-lables = data["University"]
+    trace1 = go.Box(
+                y=dff1[line[0]],
+                name='Top 100',
+                marker=go.box.Marker(
+                    color='rgb(79, 167, 235)'
+                )
+            )
+    trace2 = go.Box(
+                y=dff2[line[0]],
+                name='1001-200',
+                marker=go.box.Marker(
+                    color='rgb(87, 225, 215)'
+                )
+            )
+    min_value[path+'\n']=float(line[2])
+    max_value[path+'\n']=max(df[line[0]])
+    traces = [trace1, trace2]
+    return traces
 
-#Retrieve the attributes of each University
-intCol2018 = data["intCol2018"]
-h5Index = data["h5Index"]
+# Read data to visualize the patterns of 1 dimension
+directory="/Users/sandy/Downloads/results-2/1/"
+f = open(directory+"patterns.txt", "r")
+patterns1 = f.readlines()
+
+graphs = dict()
+min_value = dict()
+max_value = dict()
+
+for line in patterns1:
+    line=line.rstrip()
+    graphs[line+'\n']=trace1pattern(line)
+
+f.close()
 
 
-color=np.array(['rgb(255,255,255)'] * 200)
-y = np.array(h5Index)
-color[y<175]='rgb(185,205, 235)'
-color[y>=175]='rgb(79, 167, 235)'
+# 2D Patterns
+
+def trace2pattern(path):
+    dfTrue = pd.read_csv(directory+"True "+path+".csv", encoding = "ISO-8859-1")
+    dfFalse = pd.read_csv(directory+"False "+path+".csv", encoding = "ISO-8859-1")
+
+    df1True = dfTrue[dfTrue['class']==1]
+    df2True = dfTrue[dfTrue['class']==2]
+
+    df1False =dfFalse[dfFalse['class']==1]
+    df2False =dfFalse[dfFalse['class']==2]
+    
+    line = path.split(" ")
+
+    trace1 = go.Scatter(x=df1True[line[0]],
+                y=df1True[line[4]],
+                mode='markers',
+                name="Top 100: cumplen",
+                marker=dict(size=16,
+                            cmax=99,
+                            cmin=0,
+                            opacity=0.7,
+                            color='rgb(87, 225, 215)'),
+                            hovertext="University: " + df1True['University']
+                        )
+
+
+    trace2 = go.Scatter(x=df1False[line[0]],
+                y=df1False[line[4]],
+                mode='markers',
+                name='Top 100: NO cumplen',
+                marker=dict(size=16,
+                            cmax=99,
+                            cmin=0,
+                            opacity=0.4,
+                            # symbol="triangle-sw-dot",
+                            color='rgb(79, 167, 235)'),
+                            hovertext="University: " + df1False['University']
+                        )
+
+    trace3 = go.Scatter(x=df2True[line[0]],
+                y=df2True[line[4]],
+                mode='markers',
+                name='101-200: cumplen',
+                marker=dict(size=16,
+                            cmax=99,
+                            cmin=0,
+                            opacity=0.7,
+                            symbol="triangle-sw-dot",
+                            color='rgb(87, 225, 215)'),
+                            hovertext="University: " + df2True['University']
+                        )
+
+    trace4 = go.Scatter(x=df2False[line[0]],
+                y=df2False[line[4]],
+                mode='markers',
+                name='101-200: NO cumplen',
+                marker=dict(size=16,
+                            cmax=99,
+                            cmin=0,
+                            opacity=0.4,
+                            symbol="triangle-sw-dot",
+                            color='rgb(79, 167, 235)'),
+                            hovertext="University: " + df2False['University']
+                        )
+
+    traces = [trace1, trace2, trace3, trace4]
+    return traces
+
+# Read data to visualize the patterns of 1 dimension
+directory="/Users/sandy/Downloads/results-2/2/"
+f = open(directory+"pattern.txt", "r")
+patterns2 = f.readlines()
+
+graphs2 = dict()
+
+
+for line in patterns2:
+    line=line.rstrip()
+    graphs2[line+'\n']=trace2pattern(line)
+f.close()
 
 
 
+
+# Create a Dash Application
 app = dash.Dash(__name__)
 
 # Since we're adding callbacks to elements that don't exist in the app.layout,
@@ -29,668 +143,88 @@ app = dash.Dash(__name__)
 # doing something wrong.
 # In this case, we're adding the elements through a callback, so we can ignore
 # the exception.
+# app.config.suppress_callback_exceptions = True
 app.config.suppress_callback_exceptions = True
 
 app.layout = html.Div([
-    dcc.Location(id='url', refresh=False),
+    dcc.Location(id='url', refresh=True),
     html.Div(id='page-content')
 ])
 
-page_intCol2018_layout = html.Div([
-    html.H1('International Collaboration (%) from 2018.'),
-    html.Div(id='page-intCol2018-content'),
-        dcc.Graph(
-        id='example-graph',
-        figure={
-            'data': [
-                {'x': lables, 'y': intCol2018, 'type': 'bar'} 
-            ],
-            'layout': {
-                'title': 'University vs International Collaboration (2018)'
-            }
-        }
-    )
+# Create the main page for patterns of 1 dimmension
+page_1pattern_layout = html.Div([
+    html.Div(id='page-1pattern'),
+    dcc.Dropdown(
+        id='1pattern-dropdown',
+        options=[
+            {'label': line, 'value': line} for line in patterns1],
+            value=patterns1[0],
+    ),
+     dcc.Graph(
+        style={'height': 800, 'width': 800},
+        id='my-graph1')
 ])
 
 
-page_intCol2017_layout = html.Div([
-    # html.H1('International Collaboration (%) from 2017.'),
-    html.Div(id='page-intCol2017-content'),
-        dcc.Graph(
-        id='example-graph',
-        figure={
-            'data': [
-                {'x': lables, 'y': data["intCol2017"], 'type': 'bar'} 
-            ],
-            'layout': {
-                'title': 'University vs International Collaboration (2017)'
-            }
-        }
-    )
+# Create the main page for patterns of 2 dimmension2
+page_2pattern_layout = html.Div([
+    html.Div(id='page-2pattern'),
+    dcc.Dropdown(
+        id='2pattern-dropdown',
+        options=[
+            {'label': line, 'value': line} for line in patterns2],
+            value=patterns2[0],
+    ),
+     dcc.Graph(
+        style={'height': 800},
+        id='my-graph2')
 ])
 
-
-page_intCol2016_layout = html.Div([
-    # html.H1('International Collaboration (%) from 2016.'),
-    html.Div(id='page-intCol2016-content'),
-        dcc.Graph(
-        id='example-graph',
-        figure={
-            'data': [
-                {'x': lables, 'y': data["intCol2016"], 'type': 'bar'} 
-            ],
-            'layout': {
-                'title': 'University vs International Collaboration (2016)'
-            }
-        }
-    )
-])
-
-
-
-page_acaCol2018_layout = html.Div([
-    # html.H1('Academic-Corporate Collaboration (%) from 2018.'),
-    html.Div(id='page-acaCol2018-content'),
-        dcc.Graph(
-        id='example-graph',
-        figure={
-            'data': [
-                {'x': lables, 'y': data['acaCol2018'], 'type': 'bar'} 
-            ],
-            'layout': {
-                'title': 'University vs Academic-Corporate Collaboration (2018)'
-            }
-        }
-    )
-])
-
-
-
-page_acaCol2017_layout = html.Div([
-    # html.H1('Academic-Corporate Collaboration (%) from 2017.'),
-    html.Div(id='page-acaCol2017-content'),
-        dcc.Graph(
-        id='example-graph',
-        figure={
-            'data': [
-                {'x': lables, 'y': data['acaCol2017'], 'type': 'bar'} 
-            ],
-            'layout': {
-                'title': 'University vs Academic-Corporate Collaboration (2017)'
-            }
-        }
-    )
-])
-
-
-page_acaCol2016_layout = html.Div([
-    # html.H1('International Collaboration (%) from 2016.'),
-    html.Div(id='page-acaCol2016-content'),
-        dcc.Graph(
-        id='example-graph',
-        figure={
-            'data': [
-                {'x': lables, 'y': data['acaCol2016'], 'type': 'bar'} 
-            ],
-            'layout': {
-                'title': 'University vs Academic-Corporate Collaboration (2016)'
-            }
-        }
-    )
-])
-
-
-page_pub2018_layout = html.Div([
-    # html.H1('Scholarly Output from 2018.'),
-    html.Div(id='page-pub2018-content'),
-        dcc.Graph(
-        id='example-graph',
-        figure={
-            'data': [
-                {'x': lables, 'y': data['pub2018'], 'type': 'bar'} 
-            ],
-            'layout': {
-                'title': 'University vs Scholarly Output (2018)'
-            }
-        }
-    )
-])
-
-
-page_pub2017_layout = html.Div([
-    # html.H1('Scholarly Output from 2017.'),
-    html.Div(id='page-pub2017-content'),
-        dcc.Graph(
-        id='example-graph',
-        figure={
-            'data': [
-                {'x': lables, 'y': data['pub2017'], 'type': 'bar'} 
-            ],
-            'layout': {
-                'title': 'University vs Scholarly Output (2017)'
-            }
-        }
-    )
-])
-
-
-page_pub2016_layout = html.Div([
-    # html.H1('Scholarly Output from 2016.'),
-    html.Div(id='page-pub2016-content'),
-        dcc.Graph(
-        id='example-graph',
-        figure={
-            'data': [
-                {'x': lables, 'y': data['pub2016'], 'type': 'bar'} 
-            ],
-            'layout': {
-                'title': 'University vs Scholarly Output (2016)'
-            }
-        }
-    )
-])
-
-
-page_cit2018_layout = html.Div([
-    # html.H1('Citations from 2018.'),
-    html.Div(id='page-cit2018-content'),
-        dcc.Graph(
-        id='example-graph',
-        figure={
-            'data': [
-                {'x': lables, 'y': data['cit2018'], 'type': 'bar'} 
-            ],
-            'layout': {
-                'title': 'University vs Citations (2018)'
-            }
-        }
-    )
-])
-
-
-
-page_cit2017_layout = html.Div([
-    # html.H1('Citations from 2017.'),
-    html.Div(id='page-cit2017-content'),
-        dcc.Graph(
-        id='example-graph',
-        figure={
-            'data': [
-                {'x': lables, 'y':  data['cit2017'], 'type': 'bar'} 
-            ],
-            'layout': {
-                'title': 'University vs Citations (2017)'
-            }
-        }
-    )
-])
-
-
-
-page_cit2016_layout = html.Div([
-    # html.H1('Citations from 2016.'),
-    html.Div(id='page-cit2016-content'),
-        dcc.Graph(
-        id='example-graph',
-        figure={
-            'data': [
-                {'x': lables, 'y':  data['cit2016'], 'type': 'bar'} 
-            ],
-            'layout': {
-                'title': 'University vs Citations (2016)'
-            }
-        }
-    )
-])
-
-
-
-# page_fwCitImp2018_layout = html.Div([
-#     html.H1('Field-Weighted Citation Impact from 2018.'),
-#     html.Div(id='page-fwCitImp2018-content'),
-#         dcc.Graph(
-#         id='example-graph',
-#         figure={
-#             'data': [
-#                 {'x': lables, 'y': prueba1, 'type': 'bar'} 
-#             ],
-#             'layout': {
-#                 'title': 'University vs H5-index'
-#             }
-#         }
-#     )
-# ])
-
-
-# page_fwCitImp2017_layout = html.Div([
-#     html.H1('Field-Weighted Citation Impact from 2017.'),
-#     html.Div(id='page-fwCitImp2017-content'),
-#         dcc.Graph(
-#         id='example-graph',
-#         figure={
-#             'data': [
-#                 {'x': lables, 'y': prueba1, 'type': 'bar'} 
-#             ],
-#             'layout': {
-#                 'title': 'University vs H5-index'
-#             }
-#         }
-#     )
-# ])
-
-
-# page_fwCitImp2016_layout = html.Div([
-#     html.H1('Field-Weighted Citation Impact from 2016.'),
-#     html.Div(id='page-fwCitImp2016-content'),
-#         dcc.Graph(
-#         id='example-graph',
-#         figure={
-#             'data': [
-#                 {'x': lables, 'y': prueba1, 'type': 'bar'} 
-#             ],
-#             'layout': {
-#                 'title': 'University vs H5-index'
-#             }
-#         }
-#     )
-# ])
-
-
-# page_pubTCP2018_layout = html.Div([
-#     html.H1('Outputs in Top Citation Percentiles (top 10%) from 2018.'),
-#     html.Div(id='page-pubTCP2018-content'),
-#         dcc.Graph(
-#         id='example-graph',
-#         figure={
-#             'data': [
-#                 {'x': lables, 'y': prueba1, 'type': 'bar'} 
-#             ],
-#             'layout': {
-#                 'title': 'University vs H5-index'
-#             }
-#         }
-#     )
-# ])
-
-
-# page_pubTCP2017_layout = html.Div([
-#     html.H1('Outputs in Top Citation Percentiles (top 10%) from 2017.'),
-#     html.Div(id='page-pubTCP2017-content'),
-#         dcc.Graph(
-#         id='example-graph',
-#         figure={
-#             'data': [
-#                 {'x': lables, 'y': prueba1, 'type': 'bar'} 
-#             ],
-#             'layout': {
-#                 'title': 'University vs H5-index'
-#             }
-#         }
-#     )
-# ])
-
-
-# page_pubTCP2016_layout = html.Div([
-#     html.H1('Outputs in Top Citation Percentiles (top 10%) from 2016.'),
-#     html.Div(id='page-pubTCP2016-content'),
-#         dcc.Graph(
-#         id='example-graph',
-#         figure={
-#             'data': [
-#                 {'x': lables, 'y': prueba1, 'type': 'bar'} 
-#             ],
-#             'layout': {
-#                 'title': 'University vs H5-index'
-#             }
-#         }
-#     )
-# ])
-
-
-# page_pubTJP2018_layout = html.Div([
-#     html.H1('Publications in Top Journal Percentiles (top 10%) by CiteScore Percentile) from 2018.'),
-#     html.Div(id='page-pubTJP2018-content'),
-#         dcc.Graph(
-#         id='example-graph',
-#         figure={
-#             'data': [
-#                 {'x': lables, 'y': prueba1, 'type': 'bar'} 
-#             ],
-#             'layout': {
-#                 'title': 'University vs H5-index'
-#             }
-#         }
-#     )
-# ])
-
-# page_pubTJP2017_layout = html.Div([
-#     html.H1('Publications in Top Journal Percentiles (top 10%) by CiteScore Percentile) from 2017.'),
-#     html.Div(id='page-pubTJP2017-content'),
-#         dcc.Graph(
-#         id='example-graph',
-#         figure={
-#             'data': [
-#                 {'x': lables, 'y': prueba1, 'type': 'bar'} 
-#             ],
-#             'layout': {
-#                 'title': 'University vs H5-index'
-#             }
-#         }
-#     )
-# ])
-
-
-# page_pubTJP2016_layout = html.Div([
-#     html.H1('Publications in Top Journal Percentiles (top 10%) by CiteScore Percentile) from 2016.'),
-#     html.Div(id='page-pubTJP2016-content'),
-#         dcc.Graph(
-#         id='example-graph',
-#         figure={
-#             'data': [
-#                 {'x': lables, 'y': prueba1, 'type': 'bar'} 
-#             ],
-#             'layout': {
-#                 'title': 'University vs H5-index'
-#             }
-#         }
-#     )
-# ])
-
-# page_citPP2018_layout = html.Div([
-#     html.H1('Citations per Publication from 2018.'),
-#     html.Div(id='page-citPP2018-content'),
-#         dcc.Graph(
-#         id='example-graph',
-#         figure={
-#             'data': [
-#                 {'x': lables, 'y': prueba1, 'type': 'bar'} 
-#             ],
-#             'layout': {
-#                 'title': 'University vs H5-index'
-#             }
-#         }
-#     )
-# ])
-
-# page_citPP2017_layout = html.Div([
-#     html.H1('Citations per Publication from 2017.'),
-#     html.Div(id='page-citPP2017-content'),
-#         dcc.Graph(
-#         id='example-graph',
-#         figure={
-#             'data': [
-#                 {'x': lables, 'y': prueba1, 'type': 'bar'} 
-#             ],
-#             'layout': {
-#                 'title': 'University vs H5-index'
-#             }
-#         }
-#     )
-# ])
-
-# page_citPP2016_layout = html.Div([
-#     html.H1('Citations per Publication from 2016.'),
-#     html.Div(id='page-citPP2016-content'),
-#         dcc.Graph(
-#         id='example-graph',
-#         figure={
-#             'data': [
-#                 {'x': lables, 'y': prueba1, 'type': 'bar'} 
-#             ],
-#             'layout': {
-#                 'title': 'University vs H5-index'
-#             }
-#         }
-#     )
-# ])
-
-# page_authors2018_layout = html.Div([
-#     html.H1('Authors from 2018.'),
-#     html.Div(id='page-authors2018-content'),
-#         dcc.Graph(
-#         id='example-graph',
-#         figure={
-#             'data': [
-#                 {'x': lables, 'y': prueba1, 'type': 'bar'} 
-#             ],
-#             'layout': {
-#                 'title': 'University vs H5-index'
-#             }
-#         }
-#     )
-# ])
-
-
-# page_authors2017_layout = html.Div([
-#     html.H1('Authors from 2017.'),
-#     html.Div(id='page-authors2017-content'),
-#         dcc.Graph(
-#         id='example-graph',
-#         figure={
-#             'data': [
-#                 {'x': lables, 'y': prueba1, 'type': 'bar'} 
-#             ],
-#             'layout': {
-#                 'title': 'University vs H5-index'
-#             }
-#         }
-#     )
-# ])
-
-
-# page_authors2016_layout = html.Div([
-#     html.H1('Authors from 2016.'),
-#     html.Div(id='page-authors2016-content'),
-#         dcc.Graph(
-#         id='example-graph',
-#         figure={
-#             'data': [
-#                 {'x': lables, 'y': prueba1, 'type': 'bar'} 
-#             ],
-#             'layout': {
-#                 'title': 'University vs H5-index'
-#             }
-#         }
-#     )
-# ])
-
-
-# page_citPA2018_layout = html.Div([
-#     html.H1('Citations per Author from 2018.'),
-#     html.Div(id='page-citPA2018-content'),
-#         dcc.Graph(
-#         id='example-graph',
-#         figure={
-#             'data': [
-#                 {'x': lables, 'y': prueba1, 'type': 'bar'} 
-#             ],
-#             'layout': {
-#                 'title': 'University vs H5-index'
-#             }
-#         }
-#     )
-# ])
-
-# page_citPA2017_layout = html.Div([
-#     html.H1('Citations per Author from 2017.'),
-#     html.Div(id='page-citPA2017-content'),
-#         dcc.Graph(
-#         id='example-graph',
-#         figure={
-#             'data': [
-#                 {'x': lables, 'y': prueba1, 'type': 'bar'} 
-#             ],
-#             'layout': {
-#                 'title': 'University vs H5-index'
-#             }
-#         }
-#     )
-# ])
-
-# page_citPA2016_layout = html.Div([
-#     html.H1('Citations per Author from 2016.'),
-#     html.Div(id='page-citPA2016-content'),
-#         dcc.Graph(
-#         id='example-graph',
-#         figure={
-#             'data': [
-#                 {'x': lables, 'y': prueba1, 'type': 'bar'} 
-#             ],
-#             'layout': {
-#                 'title': 'University vs H5-index'
-#             }
-#         }
-#     )
-# ])
-
-# page_pubPA2018_layout = html.Div([
-#     html.H1('Publications per Author from 2018.'),
-#     html.Div(id='page-pubPA2018-content'),
-#         dcc.Graph(
-#         id='example-graph',
-#         figure={
-#             'data': [
-#                 {'x': lables, 'y': prueba1, 'type': 'bar'} 
-#             ],
-#             'layout': {
-#                 'title': 'University vs H5-index'
-#             }
-#         }
-#     )
-# ])
-
-# page_pubPA2017_layout = html.Div([
-#     html.H1('Publications per Author from 2017.'),
-#     html.Div(id='page-pubPA2017-content'),
-#         dcc.Graph(
-#         id='example-graph',
-#         figure={
-#             'data': [
-#                 {'x': lables, 'y': prueba1, 'type': 'bar'} 
-#             ],
-#             'layout': {
-#                 'title': 'University vs H5-index'
-#             }
-#         }
-#     )
-# ])
-
-
-# page_pubPA2016_layout = html.Div([
-#     html.H1('Publications per Author from 2016.'),
-#     html.Div(id='page-pubPA2016-content'),
-#         dcc.Graph(
-#         id='example-graph',
-#         figure={
-#             'data': [
-#                 {'x': lables, 'y': prueba1, 'type': 'bar'} 
-#             ],
-#             'layout': {
-#                 'title': 'University vs H5-index'
-#             }
-#         }
-#     )
-# ])
-
-page_h5Index_layout = html.Div([
-    # html.H1('H5-Index.'),
-    html.Div(id='page-h5Index-content'),
-    dcc.Graph(
-        id='example-graph',
-        figure={
-            'data': [
-                {'x': lables, 'y': h5Index, 'type': 'bar', 'marker':dict(color = color)} 
-            ],
-            'layout': {
-                'title': 'University vs H5-index'
-            }
-        }
-    )
-])
-
-
-
-
-
-
-# Update the index
 @app.callback(dash.dependencies.Output('page-content', 'children'),
               [dash.dependencies.Input('url', 'pathname')])
-def display_page(pathname):
-    if pathname == '/intCol2018':
-        return page_intCol2018_layout
-    elif pathname == '/intCol2017':
-        return page_intCol2017_layout
-    elif pathname == '/intCol2016':
-        return page_intCol2016_layout
-    elif pathname == '/acaCol2018':
-        return page_acaCol2018_layout
-    elif pathname == '/acaCol2017':
-        return page_acaCol2018_layout
-    elif pathname == '/acaCol2016':
-        return page_acaCol2016_layout
-    elif pathname == '/pub2018':
-        return page_pub2018_layout
-    elif pathname == '/pub2017':
-        return page_pub2018_layout
-    elif pathname == '/pub2016':
-        return page_pub2016_layout
 
-    elif pathname == '/cit2018':
-        return page_cit2018_layout
+def display_page(pathname):
+    if pathname == '/1pattern':
+        return page_1pattern_layout
+    elif pathname == '/2pattern':
+        return page_2pattern_layout
+
+
+@app.callback(dash.dependencies.Output('my-graph1', 'figure'), 
+ [dash.dependencies.Input('1pattern-dropdown', 'value')])
+
+def update_graph(selected_graph):
+     return {
+        'data': graphs[selected_graph],
         
-    elif pathname == '/cit2017':
-        return page_cit2017_layout
-    elif pathname == '/cit2016':
-        return page_cit2016_layout
-    # elif pathname == '/fwCitImp2018':
-    #     return page_fwCitImp2018_layout
-    # elif pathname == '/fwCitImp2017':
-    #     return page_fwCitImp2017_layout
-    # elif pathname == '/fwCitImp2016':
-    #     return page_fwCitImp2016_layout
-    # elif pathname == '/pubTCP2018':
-    #     return page_pubTCP2018_layout
-    # elif pathname == '/pubTCP2017':
-    #     return page_pubTCP2017_layout
-    # elif pathname == '/pubTCP2016':
-    #     return page_pubTCP2016_layout
-    # elif pathname == '/pubTJP2018':
-    #     return page_pubTJP2018_layout
-    # elif pathname == '/pubTJP2017':
-    #     return page_pubTJP2017_layout
-    # elif pathname == '/pubTJP2016':
-    #     return page_pubTJP2016_layout
-    # elif pathname == '/citPP2018':
-    #     return page_citPP2018_layout
-    # elif pathname == '/citPP2017':
-    #     return page_citPP2017_layout
-    # elif pathname == '/citPP2016':
-    #     return page_citPP2016_layout
-    # elif pathname == '/authors2018':
-    #     return page_authors2018_layout
-    # elif pathname == '/authors2017':
-    #     return page_authors2017_layout
-    # elif pathname == '/authors2016':
-    #     return page_authors2016_layout
-    # elif pathname == '/citPA2018':
-    #     return page_citPA2018_layout
-    # elif pathname == '/citPA2017':
-    #     return page_citPA2017_layout
-    # elif pathname == '/citPA2016':
-    #     return page_citPA2016_layout
-    # elif pathname == '/pubPA2018':
-    #     return page_pubPA2018_layout
-    # elif pathname == '/pubPA2017':
-    #     return page_pubPA2017_layout
-    # elif pathname == '/pubPA2016':
-    #     return page_pubPA2016_layout
-    elif pathname == '/h5Index':
-        return page_h5Index_layout
-    
-    # else:
-    #     return index_page
-    # You could also return a 404 "URL not found" page here
+        'layout':go.Layout(
+            title=selected_graph,
+            shapes=[dict(
+                type='rect',
+                x0=-1,
+                y0=min_value[selected_graph],
+                x1=2,
+                y1=max_value[selected_graph]+2000,
+                fillcolor="LightSalmon",
+                opacity=0.15,
+                layer="below",)
+
+            ],
+    ),
+
+     }
+
+@app.callback(dash.dependencies.Output('my-graph2', 'figure'), 
+ [dash.dependencies.Input('2pattern-dropdown', 'value')])
+
+def update_graph(selected_graph2):
+    return {
+        'data': graphs2[selected_graph2],
+        
+        'layout':go.Layout(
+            title=selected_graph2,)
+        }
+
 
 
 if __name__ == '__main__':
