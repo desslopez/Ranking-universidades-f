@@ -86,7 +86,7 @@ def trace2pattern(path):
                             cmin=0,
                             opacity=0.4,
                             # symbol="triangle-sw-dot",
-                            color='rgb(79, 167, 235)'),
+                            color='rgb(87, 225, 215)'),
                             hovertext="University: " + df1False['University']
                         )
 
@@ -99,7 +99,7 @@ def trace2pattern(path):
                             cmin=0,
                             opacity=0.7,
                             symbol="triangle-sw-dot",
-                            color='rgb(87, 225, 215)'),
+                            color='rgb(79, 167, 235)'),
                             hovertext="University: " + df2True['University']
                         )
 
