@@ -9,8 +9,8 @@ import { GlosarioComponent } from './componentes/patrones/glosario/glosario.comp
 import { UnAttComponent } from './componentes/patrones/un-att/un-att.component';
 import { DosAttComponent } from './componentes/patrones/dos-att/dos-att.component';
 const APP_ROUTES: Routes = [
-{ path: 'acercade', component: ProyectoComponent },
-{ path: 'principal', component: PrincipalComponent, children:[
+{ path: 'principal', component: ProyectoComponent },
+{ path: 'patrones', component: PrincipalComponent, children:[
   { path: 'glosario', component: GlosarioComponent },
   { path: 'unAtt', component: UnAttComponent },
   { path: 'dosAtt', component: DosAttComponent }

@@ -1,6 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-
+import {HttpClientModule} from '@angular/common/http';
 
 import { APP_ROUTING } from './app.routes';
 
@@ -15,6 +15,7 @@ import { TodosLosPatronesComponent } from './componentes/patrones/todos-los-patr
 import { GlosarioComponent } from './componentes/patrones/glosario/glosario.component';
 import { UnAttComponent } from './componentes/patrones/un-att/un-att.component';
 import { DosAttComponent } from './componentes/patrones/dos-att/dos-att.component';
+import {ActualizacionDatosService} from './servicios/actualizacion-datos.service';
 @NgModule({
   declarations: [
     AppComponent,
@@ -30,9 +31,10 @@ import { DosAttComponent } from './componentes/patrones/dos-att/dos-att.componen
   ],
   imports: [
     BrowserModule,
-    APP_ROUTING
+    APP_ROUTING,
+    HttpClientModule
   ],
-  providers: [],
+  providers: [ActualizacionDatosService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

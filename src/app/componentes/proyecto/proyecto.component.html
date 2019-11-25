@@ -1,8 +1,18 @@
 <section class="jumbotron text-center">
     <div class="container">
       <h1 class="jumbotron-heading">Acerca del Proyecto</h1>
-      <p class="lead text-muted">Este proyecto busca determinar los criterios de investigación que las universidades ubicadas en los primeros 200 lugares del Ranking QS comparten entre sí, para obtener los factores críticos detrás de ese rango en el listado.</p>
-      <p>
+      <p class="lead text-muted">El Tecnológico de Monterrey busca determinar los criterios de investigación que las universidades ubicadas en los primeros 200 lugares del Ranking QS comparten entre sí, para determinar lo que hace que tengan ese rango en el listado. De esta manera, el Tecnológico puede mejorar su estrategia de investigación para obtener una mejor posición en Rankings posteriores. Para ello, se pretende utilizar los datos que se obtienen utilizando la plataforma web Scopus, donde son alojados los papers de investigación que las universidades publican.
+      </p>
+        <hr class="my-4">
+      <p>El proyecto consiste en un sistema web en el que se muestran visualizaciones de los patrones de datos que se encuentran disponibles en la base de datos SciVal y en el ranking QS. El proyecto utiliza un programa de Data Mining creado por el Dr. Miguel Angel Medina.</p>
+
+<p>Se realizó, con retroalimentación constante del Dr. Miguel Medina, un proceso de Ingeniería de atributos que consiste en determinar los rasgos a evaluar de cada universidad. Posteriormente, se hizo un script de recolección de datos, mismo que conecta al Ranking QS y a SciVal para la obtención de todos los valores. Adicionalmente, el script construye un dataset con los criterios definidos en la Ingeniería de atributos, mismo que es consumido por un programa de data mining para realizar detección de patrones. Los datos que se obtienen son procesados por un parser que genera un archivo por cada patrón encontrado, con los datos involucrados en el mismo.</p>
+
+<p>Los datos se almacenan en archivos CSV que son consumidos por la herramienta Dash para mostrar diversas visualizaciones en la interfaz web montada en Angular.</p>
+<p>
+Todos los scripts funcionan de manera independiente, realizando una parte del procesamiento que requiere el sistema. Esto, se comunica mediante una arquitectura de microservicios para integrar la funcionalidad a todo el sistema.
+</p>
+    <p>
         <a style="margin:5px" class="btn btn-primary my-2" [routerLink]="['../nosotros']" >Nosotros</a>
         <a href="https://www.topuniversities.com/qs-world-university-rankings" style="margin:5px" class="btn btn-secondary my-2">Conoce más</a>
       </div>
