@@ -1,6 +1,7 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
+import dash_table
 import pandas as pd
 import plotly.graph_objs as go
 from dash.dependencies import Input, Output
@@ -88,7 +89,7 @@ def trace2pattern(path):
                             cmin=0,
                             opacity=0.4,
                             # symbol="triangle-sw-dot",
-                            color='rgb(87, 225, 215)'),
+                            color='rgb(206, 207, 209)'),
                             hovertext="University: " + df1False['University']
                         )
 
@@ -114,7 +115,7 @@ def trace2pattern(path):
                             cmin=0,
                             opacity=0.4,
                             symbol="triangle-sw-dot",
-                            color='rgb(79, 167, 235)'),
+                            color='rgb(206, 207, 209)'),
                             hovertext="University: " + df2False['University']
                         )
                 
@@ -174,7 +175,7 @@ def trace3pattern(path):
                             cmin=0,
                             opacity=0.4,
                             # symbol="triangle-sw-dot",
-                            color='rgb(87, 225, 215)'),
+                            color='rgb(206, 207, 209)'),
                             hovertext="University: " + df1False['University']
                         )
 
@@ -202,7 +203,7 @@ def trace3pattern(path):
                             cmin=0,
                             opacity=0.4,
                             symbol="square",
-                            color='rgb(79, 167, 235)'),
+                            color='rgb(206, 207, 209)'),
                             hovertext="University: " + df2False['University']
                         )
 
@@ -221,6 +222,14 @@ graphs3 = dict()
 x_name_g3 = dict()
 y_name_g3 = dict()
 z_name_g3 = dict()
+
+# headers = [['Patrones de 1 atributo', 'Patrones de 2 atributos', 'Patrones 3 aributos']]
+temp1 = pd.read_csv("/Users/sandy/Downloads/results-2/1/patterns.txt", names=["Patrones de 1 atributo"])
+temp2 = pd.read_csv("/Users/sandy/Downloads/results-2/2/pattern.txt", names=['Patrones de 2 atributos'])
+temp3 = pd.read_csv("/Users/sandy/Downloads/results-2/3/pattern.txt", names=['Patrones de 3 aributos'])
+
+patterns = pd.concat([temp1, temp2, temp3],axis=1)
+
 
 for line in patterns3:
     graphs3[line]=trace3pattern(line)
@@ -266,7 +275,7 @@ page_2pattern_layout = html.Div([
         id='2pattern-dropdown',
         options=[
             {'label': line, 'value': line} for line in patterns2],
-            value=patterns2[0],
+            value=patterns2[0]
     ),
      dcc.Graph(
         style={'height': 800},
@@ -289,6 +298,39 @@ page_3pattern_layout = html.Div([
         id='my-graph3')
 ])
 
+page_table_layout =  html.Div([
+    html.Div(id='page-table'),
+    dash_table.DataTable(
+    id='table',
+    columns=[{"name": i, "id": i} for i in patterns.columns], 
+    data=patterns.to_dict('records'),
+    style_cell={
+        'textAlign': 'left',
+        'height': 'auto',
+        'minWidth': '0px', 'maxWidth': '180px',
+        'whiteSpace': 'normal',
+        'padding': '5px',
+        'border': '2px solid black'
+    },
+    style_header={'textAlign': 'center',
+    'backgroundColor':'rgb(153, 204, 255)',
+    'fontWeight': 'bold',
+    'fontSize':'20px',
+
+    },
+    style_data_conditional=[
+        {
+            'if': {'row_index': 'even'},
+            'backgroundColor': 'rgb(199, 226, 255)'
+        },
+        {
+            'if': {'row_index': 'odd'},
+            'backgroundColor': 'rgb(225, 237, 250)'
+        }
+    ],
+    )
+])
+
 @app.callback(dash.dependencies.Output('page-content', 'children'),
               [dash.dependencies.Input('url', 'pathname')])
 
@@ -299,13 +341,17 @@ def display_page(pathname):
         return page_2pattern_layout
     elif pathname == '/3pattern':
         return page_3pattern_layout
+    elif pathname == '/patterns':
+        return page_table_layout
 
 
 @app.callback(dash.dependencies.Output('my-graph1', 'figure'), 
  [dash.dependencies.Input('1pattern-dropdown', 'value')])
 
 def update_graph(selected_graph):
-     return {
+    if not selected_graph:
+        selected_graph = patterns1[0]
+    return {
         'data': graphs[selected_graph],
         
         'layout':go.Layout(
@@ -330,6 +376,8 @@ def update_graph(selected_graph):
  [dash.dependencies.Input('2pattern-dropdown', 'value')])
 
 def update_graph(selected_graph2):
+    if not selected_graph2:
+        selected_graph2 = patterns2[0]
     return {
         'data': graphs2[selected_graph2],
         
@@ -343,6 +391,8 @@ def update_graph(selected_graph2):
  [dash.dependencies.Input('3pattern-dropdown', 'value')])
 
 def update_graph(selected_graph3):
+    if not selected_graph3:
+        selected_graph3 = patterns3[0]
     return {
         'data': graphs3[selected_graph3],
         
@@ -353,7 +403,7 @@ def update_graph(selected_graph3):
                                zaxis=dict(title=z_name_g3[selected_graph3]),
             )
         )
-        }
+    }
 
 
 if __name__ == '__main__':
