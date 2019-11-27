@@ -298,6 +298,8 @@ page_3pattern_layout = html.Div([
         id='my-graph3')
 ])
 
+
+
 page_table_layout =  html.Div([
     html.Div(id='page-table'),
     dash_table.DataTable(
@@ -328,6 +330,7 @@ page_table_layout =  html.Div([
             'backgroundColor': 'rgb(225, 237, 250)'
         }
     ],
+    fixed_rows={ 'headers': True, 'data': 0 },
     )
 ])
 
