@@ -16,6 +16,7 @@ import { GlosarioComponent } from './componentes/patrones/glosario/glosario.comp
 import { UnAttComponent } from './componentes/patrones/un-att/un-att.component';
 import { DosAttComponent } from './componentes/patrones/dos-att/dos-att.component';
 import {ActualizacionDatosService} from './servicios/actualizacion-datos.service';
+import { TresAttComponent } from './componentes/patrones/tres-att/tres-att.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -27,7 +28,8 @@ import {ActualizacionDatosService} from './servicios/actualizacion-datos.service
     TodosLosPatronesComponent,
     GlosarioComponent,
     UnAttComponent,
-    DosAttComponent
+    DosAttComponent,
+    TresAttComponent
   ],
   imports: [
     BrowserModule,
