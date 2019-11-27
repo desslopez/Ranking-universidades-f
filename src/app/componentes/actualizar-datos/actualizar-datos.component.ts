@@ -20,6 +20,7 @@ export class ActualizarDatosComponent implements OnInit {
       this.actualizacionDatosService.getDataCol().subscribe(
         respuesta=>{
           console.log(respuesta);
+          window.alert(respuesta);
           resolve(respuesta);
         }
       )
@@ -30,6 +31,7 @@ export class ActualizarDatosComponent implements OnInit {
       this.actualizacionDatosService.getDataMin().subscribe(
         respuesta=>{
           console.log(respuesta);
+          window.alert(respuesta);
           resolve(respuesta);
         }
       )
@@ -40,6 +42,7 @@ export class ActualizarDatosComponent implements OnInit {
       this.actualizacionDatosService.getParseo().subscribe(
         respuesta=>{
           console.log(respuesta);
+          window.alert(respuesta);
           resolve(respuesta);
         }
       )
