@@ -25,7 +25,7 @@ def trace1pattern(path):
             )
     trace2 = go.Box(
                 y=dff2[line[0]],
-                name='1001-200',
+                name='101-200',
                 marker=go.box.Marker(
                     color='rgb(87, 225, 215)'
                 )
